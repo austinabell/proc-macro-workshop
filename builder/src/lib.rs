@@ -7,7 +7,7 @@ use syn::{parse_macro_input, DeriveInput};
 #[proc_macro_derive(Builder)]
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-
+    
     let name = &input.ident;
     let b_name = format!("{}Builder", name);
     let b_ident = syn::Ident::new(&b_name, name.span());
@@ -35,6 +35,14 @@ pub fn derive(input: TokenStream) -> TokenStream {
             pub fn current_dir(&mut self, current_dir: String) -> &mut Self {
                 self.current_dir = Some(current_dir);
                 self
+            }
+            pub fn build(&mut self) -> Result<#name, Box<dyn std::error::Error>> {
+                Ok(#name {
+                    executable: self.executable.clone().ok_or("executable is not set")?,
+                    args: self.args.clone().ok_or("args is not set")?,
+                    env: self.env.clone().ok_or("env is not set")?,
+                    current_dir: self.current_dir.clone().ok_or("current_dir is not set")?,
+                })
             }
         }
         impl #name {
